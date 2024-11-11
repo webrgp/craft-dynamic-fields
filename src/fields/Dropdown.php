@@ -10,6 +10,7 @@ use craft\base\Field;
 use craft\helpers\Db;
 use yii\db\Schema;
 use craft\helpers\Json;
+use craft\helpers\Cp;
 
 class Dropdown extends Field
 {
@@ -63,21 +64,23 @@ class Dropdown extends Field
     
     public function getInputHtml($value, ElementInterface $element = null): string
     {
-		$view = Craft::$app->getView();
-		$templateMode = $view->getTemplateMode();
-		$view->setTemplateMode($view::TEMPLATE_MODE_SITE);
+	$view = Craft::$app->getView();
+	$templateMode = $view->getTemplateMode();
+	$view->setTemplateMode($view::TEMPLATE_MODE_SITE);
 
-		$variables['element'] = $element;
-		$variables['this'] = $this;
+	$variables['element'] = $element;
+	$variables['this'] = $this;
+	
+	$options = json_decode('[' . $view->renderString($this->dropdownOptions, $variables) . ']', true);
+	
+	$view->setTemplateMode($templateMode);
 		
-		$options = json_decode('[' . $view->renderString($this->dropdownOptions, $variables) . ']', true);
-		
-		$view->setTemplateMode($templateMode);
-		
-		return Craft::$app->getView()->renderTemplate('craft-dynamic-fields/_includes/forms/select', [
+	return Cp::selectizeHtml([
+            'id' => $this->getInputId(),
+            'describedBy' => $this->describedBy,
             'name' => $this->handle,
             'value' => $value,
-            'options' => $options
+            'options' => $options,
         ]);
     }
 }
